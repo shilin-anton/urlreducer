@@ -70,8 +70,8 @@ func postHandler(res http.ResponseWriter, req *http.Request) {
 
 	urlStorage.Add(short, url)
 
-	res.WriteHeader(http.StatusCreated)
 	res.Header().Set("Content-Type", "text/plain")
+	res.WriteHeader(http.StatusCreated)
 	res.Write([]byte("http://localhost:8080/" + short))
 }
 
@@ -87,10 +87,8 @@ func getHandler(res http.ResponseWriter, req *http.Request) {
 		http.NotFound(res, req)
 		return
 	}
+	res.Header().Set("Location", url)
 	res.WriteHeader(http.StatusTemporaryRedirect)
-	
-	res.Header().Set("Content-Type", "text/plain")
-	res.Write([]byte("Location: " + url))
 }
 
 func invalidRequestHandler(res http.ResponseWriter, req *http.Request) {
