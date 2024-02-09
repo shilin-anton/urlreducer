@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"github.com/shilin-anton/urlreducer/internal/app/storage"
+	"github.com/stretchr/testify/require"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -61,6 +62,9 @@ func TestDefineHandler(t *testing.T) {
 			h(w, req)
 
 			resp := w.Result()
+
+			err := req.Body.Close()
+			require.NoError(t, err)
 
 			if resp.StatusCode != test.wantStatusCode {
 				t.Errorf("unexpected status code: got %d, want %d", resp.StatusCode, test.wantStatusCode)
