@@ -61,10 +61,10 @@ func TestDefineHandler(t *testing.T) {
 			h := http.HandlerFunc(srv.DefineHandler)
 			h(w, req)
 
-			resp := w.Result()
-
 			err := req.Body.Close()
 			require.NoError(t, err)
+			
+			resp := w.Result()
 
 			if resp.StatusCode != test.wantStatusCode {
 				t.Errorf("unexpected status code: got %d, want %d", resp.StatusCode, test.wantStatusCode)
