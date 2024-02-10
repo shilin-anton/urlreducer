@@ -1,9 +1,9 @@
 package server
 
 import (
-	"net/http"
-
 	"github.com/shilin-anton/urlreducer/internal/app/handlers"
+	"log"
+	"net/http"
 )
 
 type Storage interface {
@@ -20,17 +20,13 @@ type server struct {
 func New(storage Storage) *server {
 	handler := handlers.New()
 	S := &server{
-		host:    "localhost:8080",
+		host:    ":8080",
 		handler: handler,
 		storage: storage,
 	}
 	return S
 }
 
-func (s server) Start() error {
-	err := http.ListenAndServe(s.host, s.handler)
-	if err != nil {
-		return err
-	}
-	return nil
+func (s server) Start() {
+	log.Fatal(http.ListenAndServe(":8080", s.handler))
 }

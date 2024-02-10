@@ -3,10 +3,10 @@ package handlers
 import (
 	"crypto/md5"
 	"encoding/hex"
+	"github.com/go-chi/chi/v5"
 	"github.com/shilin-anton/urlreducer/internal/app/storage"
 	"io"
 	"net/http"
-	"strings"
 )
 
 type Storage interface {
@@ -24,12 +24,15 @@ func (s Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 }
 
 func New() *Server {
-	mux := http.NewServeMux()
+	r := chi.NewRouter()
+
 	S := &Server{
 		data:    make(storage.Storage),
-		handler: mux,
+		handler: r,
 	}
-	mux.HandleFunc("/", S.DefineHandler)
+	r.Get("/{short}", S.GetHandler)
+	r.Post("/", S.PostHandler)
+
 	return S
 }
 
@@ -39,16 +42,6 @@ func shortenURL(url string) string {
 	hashString := hex.EncodeToString(hash[:])
 	shortURL := hashString[:8]
 	return shortURL
-}
-
-func (s Server) DefineHandler(res http.ResponseWriter, req *http.Request) {
-	if req.Method == http.MethodPost && req.URL.Path == "/" {
-		s.PostHandler(res, req)
-	} else if req.Method == http.MethodGet && req.URL.Path != "/" {
-		s.GetHandler(res, req)
-	} else {
-		s.InvalidRequestHandler(res, req)
-	}
 }
 
 func (s Server) PostHandler(res http.ResponseWriter, req *http.Request) {
@@ -70,21 +63,13 @@ func (s Server) PostHandler(res http.ResponseWriter, req *http.Request) {
 }
 
 func (s Server) GetHandler(res http.ResponseWriter, req *http.Request) {
-	id := req.URL.Path[len("/"):]
-	if id == "" || strings.Contains(id, "/") {
-		http.Error(res, "Bad Request", http.StatusBadRequest)
-		return
-	}
+	short := chi.URLParam(req, "short")
 
-	url, ok := s.data.Get(id)
+	url, ok := s.data.Get(short)
 	if !ok {
 		http.NotFound(res, req)
 		return
 	}
 	res.Header().Set("Location", url)
 	res.WriteHeader(http.StatusTemporaryRedirect)
-}
-
-func (s Server) InvalidRequestHandler(res http.ResponseWriter, req *http.Request) {
-	http.Error(res, "Bad Request", http.StatusBadRequest)
 }
