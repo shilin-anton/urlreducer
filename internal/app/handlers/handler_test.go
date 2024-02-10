@@ -1,7 +1,6 @@
 package handlers
 
 import (
-	"github.com/shilin-anton/urlreducer/internal/app/storage"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -9,7 +8,6 @@ import (
 )
 
 func TestPostHandler(t *testing.T) {
-	storage.New()
 	srv := New()
 
 	tests := []struct {
