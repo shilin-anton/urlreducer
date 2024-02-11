@@ -42,7 +42,7 @@ func shortenURL(url string) string {
 	hash := md5.Sum([]byte(url))
 	hashString := hex.EncodeToString(hash[:])
 	shortURL := hashString[:8]
-	return shortURL
+	return "/" + shortURL
 }
 
 func (s Server) PostHandler(res http.ResponseWriter, req *http.Request) {
@@ -60,7 +60,7 @@ func (s Server) PostHandler(res http.ResponseWriter, req *http.Request) {
 
 	res.Header().Set("Content-Type", "text/plain")
 	res.WriteHeader(http.StatusCreated)
-	res.Write([]byte(config.BaseAddr + "/" + short))
+	res.Write([]byte(config.BaseAddr + short))
 }
 
 func (s Server) GetHandler(res http.ResponseWriter, req *http.Request) {
