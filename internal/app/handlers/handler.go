@@ -4,6 +4,7 @@ import (
 	"crypto/md5"
 	"encoding/hex"
 	"github.com/go-chi/chi/v5"
+	"github.com/shilin-anton/urlreducer/internal/app/config"
 	"github.com/shilin-anton/urlreducer/internal/app/storage"
 	"io"
 	"net/http"
@@ -59,7 +60,7 @@ func (s Server) PostHandler(res http.ResponseWriter, req *http.Request) {
 
 	res.Header().Set("Content-Type", "text/plain")
 	res.WriteHeader(http.StatusCreated)
-	res.Write([]byte("http://localhost:8080/" + short))
+	res.Write([]byte(config.BaseAddr + short))
 }
 
 func (s Server) GetHandler(res http.ResponseWriter, req *http.Request) {
