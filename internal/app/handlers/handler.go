@@ -60,7 +60,7 @@ func (s Server) PostHandler(res http.ResponseWriter, req *http.Request) {
 
 	res.Header().Set("Content-Type", "text/plain")
 	res.WriteHeader(http.StatusCreated)
-	res.Write([]byte(config.BaseAddr + short))
+	res.Write([]byte(config.BaseAddr + "/" + short))
 }
 
 func (s Server) GetHandler(res http.ResponseWriter, req *http.Request) {
