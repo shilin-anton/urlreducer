@@ -7,8 +7,8 @@ import (
 )
 
 func main() {
-	config.ParseFlags()
-	
+	config.ParseConfig()
+
 	myStorage := storage.New()
 	myServer := server.New(myStorage)
 	myServer.Start()
