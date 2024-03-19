@@ -2,7 +2,6 @@ package config
 
 import (
 	"flag"
-	"fmt"
 	"os"
 )
 
@@ -23,5 +22,4 @@ func ParseConfig() {
 	if envBaseAddr := os.Getenv("BASE_URL"); envBaseAddr != "" {
 		BaseAddr = envBaseAddr
 	}
-	fmt.Printf("Server is running on %s\nBase URL is %s\n", RunAddr, BaseAddr)
 }

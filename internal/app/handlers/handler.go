@@ -27,14 +27,14 @@ func (s Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 func New() *Server {
 	r := chi.NewRouter()
 
-	S := &Server{
+	s := &Server{
 		data:    make(storage.Storage),
 		handler: r,
 	}
-	r.Get("/{short}", S.GetHandler)
-	r.Post("/", S.PostHandler)
+	r.Get("/{short}", s.GetHandler)
+	r.Post("/", s.PostHandler)
 
-	return S
+	return s
 }
 
 func shortenURL(url string) string {
