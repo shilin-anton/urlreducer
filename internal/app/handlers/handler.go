@@ -6,8 +6,11 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/shilin-anton/urlreducer/internal/app/config"
 	"github.com/shilin-anton/urlreducer/internal/app/storage"
+	"github.com/shilin-anton/urlreducer/internal/logger"
 	"io"
 	"net/http"
+	"strconv"
+	"time"
 )
 
 type Storage interface {
@@ -20,12 +23,37 @@ type Server struct {
 	handler http.Handler
 }
 
+// types for logger
+type responseData struct {
+	status int
+	size   int
+}
+
+type loggingResponseWriter struct {
+	http.ResponseWriter
+	responseData *responseData
+}
+
+func (lrw *loggingResponseWriter) WriteHeader(code int) {
+	lrw.responseData.status = code
+	lrw.ResponseWriter.WriteHeader(code)
+}
+
+func (lrw *loggingResponseWriter) Write(data []byte) (int, error) {
+	size, err := lrw.ResponseWriter.Write(data)
+	lrw.responseData.size += size
+	return size, err
+}
+
 func (s Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	s.handler.ServeHTTP(w, r)
 }
 
 func New() *Server {
 	r := chi.NewRouter()
+
+	r.Use(requestLoggerMiddleware)
+	r.Use(responseLoggerMiddleware)
 
 	s := &Server{
 		data:    make(storage.Storage),
@@ -73,4 +101,20 @@ func (s Server) GetHandler(res http.ResponseWriter, req *http.Request) {
 	}
 	res.Header().Set("Location", url)
 	res.WriteHeader(http.StatusTemporaryRedirect)
+}
+
+func requestLoggerMiddleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		start := time.Now()
+		logger.RequestLogger(r.RequestURI, r.Method, time.Since(start).String())
+		next.ServeHTTP(w, r)
+	})
+}
+
+func responseLoggerMiddleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		lrw := &loggingResponseWriter{ResponseWriter: w, responseData: &responseData{}}
+		next.ServeHTTP(lrw, r)
+		logger.ResponseLogger(strconv.Itoa(lrw.responseData.status), strconv.Itoa(lrw.responseData.size))
+	})
 }
