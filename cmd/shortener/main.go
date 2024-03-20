@@ -12,7 +12,7 @@ func main() {
 	config.ParseConfig()
 	err := logger.Initialize(config.LogLevel)
 	if err != nil {
-		log.Fatal("Error initializing logger: %v\n", err)
+		log.Fatal("Error initializing logger")
 	}
 
 	myStorage := storage.New()
