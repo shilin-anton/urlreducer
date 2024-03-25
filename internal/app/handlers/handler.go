@@ -32,7 +32,7 @@ type responseData struct {
 }
 
 type shortenRequest struct {
-	Url string `json:"url"`
+	URL string `json:"url"`
 }
 
 type shortenResponse struct {
@@ -126,13 +126,13 @@ func (s Server) PostShortenHandler(res http.ResponseWriter, req *http.Request) {
 		http.Error(res, err.Error(), http.StatusBadRequest)
 		return
 	}
-	if request.Url == "" {
+	if request.URL == "" {
 		http.Error(res, "url must be passed", http.StatusUnprocessableEntity)
 		return
 	}
 
-	short := shortenURL(request.Url)
-	s.data.Add(short, request.Url)
+	short := shortenURL(request.URL)
+	s.data.Add(short, request.URL)
 
 	res.Header().Set("Content-Type", "application/json")
 	res.WriteHeader(http.StatusCreated)
