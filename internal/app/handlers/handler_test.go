@@ -1,6 +1,9 @@
 package handlers
 
 import (
+	"github.com/shilin-anton/urlreducer/internal/app/config"
+	"github.com/stretchr/testify/assert"
+	"io"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -88,6 +91,68 @@ func TestGetHandler(t *testing.T) {
 				if location != test.wantLocationHeader {
 					t.Errorf("unexpected Location header: got %s, want %s", location, test.wantLocationHeader)
 				}
+			}
+		})
+	}
+}
+
+func TestServer_PostShortenHandler(t *testing.T) {
+	srv := New()
+	config.BaseAddr = "http://localhost:8080"
+
+	testCases := []struct {
+		name         string
+		method       string
+		body         string
+		expectedCode int
+		expectedBody string
+	}{
+		{
+			name:         "method_post_without_body",
+			method:       http.MethodPost,
+			expectedCode: http.StatusBadRequest,
+			expectedBody: "",
+		},
+		{
+			name:         "method_post_unsupported_type",
+			method:       http.MethodPost,
+			body:         `{"url": ""}`,
+			expectedCode: http.StatusUnprocessableEntity,
+			expectedBody: "",
+		},
+		{
+			name:         "method_post_success",
+			method:       http.MethodPost,
+			body:         `{"url": "https://yandex.ru"}`,
+			expectedCode: http.StatusCreated,
+			expectedBody: `{"result": "http://localhost:8080/e9db20b2"}`,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			req := httptest.NewRequest(tc.method, "/shorten", strings.NewReader(tc.body))
+			w := httptest.NewRecorder()
+
+			if len(tc.body) > 0 {
+				req.Header.Set("Content-Type", "application/json")
+			}
+
+			srv.handler.ServeHTTP(w, req)
+
+			resp := w.Result()
+			defer resp.Body.Close()
+
+			if resp.StatusCode != tc.expectedCode {
+				t.Errorf("unexpected status code: got %d, want %d", resp.StatusCode, tc.expectedCode)
+			}
+			if tc.expectedBody != "" {
+				body, err := io.ReadAll(resp.Body)
+				if err != nil {
+					t.Fatalf("failed to read response body: %v", err)
+				}
+				bodyString := string(body)
+				assert.JSONEq(t, tc.expectedBody, bodyString)
 			}
 		})
 	}

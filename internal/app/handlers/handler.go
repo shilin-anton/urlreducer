@@ -1,8 +1,10 @@
 package handlers
 
 import (
+	"bytes"
 	"crypto/md5"
 	"encoding/hex"
+	"encoding/json"
 	"github.com/go-chi/chi/v5"
 	"github.com/shilin-anton/urlreducer/internal/app/config"
 	"github.com/shilin-anton/urlreducer/internal/app/storage"
@@ -27,6 +29,14 @@ type Server struct {
 type responseData struct {
 	status int
 	size   int
+}
+
+type shortenRequest struct {
+	Url string `json:"url"`
+}
+
+type shortenResponse struct {
+	Result string `json:"result"`
 }
 
 type loggingResponseWriter struct {
@@ -61,6 +71,7 @@ func New() *Server {
 	}
 	r.Get("/{short}", s.GetHandler)
 	r.Post("/", s.PostHandler)
+	r.Post("/shorten", s.PostShortenHandler)
 
 	return s
 }
@@ -101,6 +112,39 @@ func (s Server) GetHandler(res http.ResponseWriter, req *http.Request) {
 	}
 	res.Header().Set("Location", url)
 	res.WriteHeader(http.StatusTemporaryRedirect)
+}
+
+func (s Server) PostShortenHandler(res http.ResponseWriter, req *http.Request) {
+	var request shortenRequest
+	var buf bytes.Buffer
+	_, err := buf.ReadFrom(req.Body)
+	if err != nil {
+		http.Error(res, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	if err = json.Unmarshal(buf.Bytes(), &request); err != nil {
+		http.Error(res, err.Error(), http.StatusBadRequest)
+		return
+	}
+	if request.Url == "" {
+		http.Error(res, "url must be passed", http.StatusUnprocessableEntity)
+		return
+	}
+
+	short := shortenURL(request.Url)
+	s.data.Add(short, request.Url)
+
+	res.Header().Set("Content-Type", "application/json")
+	res.WriteHeader(http.StatusCreated)
+	response := shortenResponse{
+		Result: config.BaseAddr + "/" + short,
+	}
+
+	enc := json.NewEncoder(res)
+	if err = enc.Encode(response); err != nil {
+		http.Error(res, err.Error(), http.StatusInternalServerError)
+		return
+	}
 }
 
 func requestLoggerMiddleware(next http.Handler) http.Handler {
