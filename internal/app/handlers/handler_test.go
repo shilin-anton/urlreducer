@@ -131,7 +131,7 @@ func TestServer_PostShortenHandler(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			req := httptest.NewRequest(tc.method, "/shorten", strings.NewReader(tc.body))
+			req := httptest.NewRequest(tc.method, "/api/shorten", strings.NewReader(tc.body))
 			w := httptest.NewRecorder()
 
 			if len(tc.body) > 0 {

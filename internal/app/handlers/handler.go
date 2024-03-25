@@ -71,7 +71,7 @@ func New() *Server {
 	}
 	r.Get("/{short}", s.GetHandler)
 	r.Post("/", s.PostHandler)
-	r.Post("/shorten", s.PostShortenHandler)
+	r.Post("/api/shorten", s.PostShortenHandler)
 
 	return s
 }
