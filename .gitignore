@@ -21,3 +21,5 @@ vendor/
 # IDEs directories
 .idea
 .vscode
+cmd/.DS_Store
+.DS_Store
