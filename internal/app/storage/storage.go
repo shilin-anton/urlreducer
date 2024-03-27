@@ -15,3 +15,16 @@ func New() Storage {
 	storage := make(map[string]string)
 	return storage
 }
+
+func (s Storage) FindByValue(url string) (string, bool) {
+	for k, v := range s {
+		if v == url {
+			return k, true
+		}
+	}
+	return "", false
+}
+
+func (s Storage) Size() int {
+	return len(s)
+}

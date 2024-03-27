@@ -7,8 +7,8 @@ import (
 	"encoding/json"
 	"github.com/go-chi/chi/v5"
 	"github.com/shilin-anton/urlreducer/internal/app/config"
+	file_manager "github.com/shilin-anton/urlreducer/internal/app/file-manager"
 	"github.com/shilin-anton/urlreducer/internal/app/gzip"
-	"github.com/shilin-anton/urlreducer/internal/app/storage"
 	"github.com/shilin-anton/urlreducer/internal/logger"
 	"io"
 	"net/http"
@@ -20,6 +20,8 @@ import (
 type Storage interface {
 	Add(short string, url string)
 	Get(short string) (string, bool)
+	FindByValue(url string) (string, bool)
+	Size() int
 }
 
 type Server struct {
@@ -61,14 +63,14 @@ func (s Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	s.handler.ServeHTTP(w, r)
 }
 
-func New() *Server {
+func New(storage Storage) *Server {
 	r := chi.NewRouter()
 
 	r.Use(requestLoggerMiddleware)
 	r.Use(responseLoggerMiddleware)
 
 	s := &Server{
-		data:    make(storage.Storage),
+		data:    storage,
 		handler: r,
 	}
 	r.Get("/{short}", gzipMiddleware(s.GetHandler))
@@ -95,9 +97,18 @@ func (s Server) PostHandler(res http.ResponseWriter, req *http.Request) {
 	defer req.Body.Close()
 
 	url := string(body)
-	short := shortenURL(url)
-
-	s.data.Add(short, url)
+	var short string
+	if existShort, contains := s.data.FindByValue(url); !contains {
+		short = shortenURL(url)
+		uuid := s.data.Size() + 1
+		if err := file_manager.AddRecord(short, url, uuid); err != nil {
+			http.Error(res, "Error store data to file", http.StatusInternalServerError)
+			return
+		}
+		s.data.Add(short, url)
+	} else {
+		short = existShort
+	}
 
 	res.Header().Set("Content-Type", "text/plain")
 	res.WriteHeader(http.StatusCreated)
@@ -133,8 +144,20 @@ func (s Server) PostShortenHandler(res http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	short := shortenURL(request.URL)
-	s.data.Add(short, request.URL)
+	//short := shortenURL(request.URL)
+	//s.data.Add(short, request.URL)
+	var short string
+	if existShort, contains := s.data.FindByValue(request.URL); !contains {
+		short = shortenURL(request.URL)
+		uuid := s.data.Size() + 1
+		if err := file_manager.AddRecord(short, request.URL, uuid); err != nil {
+			http.Error(res, "Error store data to file", http.StatusInternalServerError)
+			return
+		}
+		s.data.Add(short, request.URL)
+	} else {
+		short = existShort
+	}
 
 	res.Header().Set("Content-Type", "application/json")
 	res.WriteHeader(http.StatusCreated)

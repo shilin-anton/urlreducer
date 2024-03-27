@@ -10,6 +10,8 @@ import (
 type Storage interface {
 	Add(short string, url string)
 	Get(short string) (string, bool)
+	FindByValue(url string) (string, bool)
+	Size() int
 }
 
 type server struct {
@@ -18,7 +20,7 @@ type server struct {
 }
 
 func New(storage Storage) *server {
-	handler := handlers.New()
+	handler := handlers.New(storage)
 	S := &server{
 		handler: handler,
 		storage: storage,

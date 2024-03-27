@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"github.com/shilin-anton/urlreducer/internal/app/config"
+	"github.com/shilin-anton/urlreducer/internal/app/storage"
 	"github.com/stretchr/testify/assert"
 	"io"
 	"net/http"
@@ -11,7 +12,8 @@ import (
 )
 
 func TestPostHandler(t *testing.T) {
-	srv := New()
+	config.FilePath = ""
+	srv := New(storage.New())
 
 	tests := []struct {
 		name           string
@@ -47,7 +49,7 @@ func TestPostHandler(t *testing.T) {
 }
 
 func TestGetHandler(t *testing.T) {
-	srv := New()
+	srv := New(storage.New())
 	srv.data.Add("test_short", "https://smth.ru")
 
 	tests := []struct {
@@ -97,8 +99,9 @@ func TestGetHandler(t *testing.T) {
 }
 
 func TestServer_PostShortenHandler(t *testing.T) {
-	srv := New()
+	config.FilePath = ""
 	config.BaseAddr = "http://localhost:8080"
+	srv := New(storage.New())
 
 	testCases := []struct {
 		name         string
