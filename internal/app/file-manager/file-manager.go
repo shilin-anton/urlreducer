@@ -1,4 +1,4 @@
-package file_manager
+package filemanager
 
 import (
 	"bufio"
@@ -12,8 +12,8 @@ import (
 
 type record struct {
 	UUID        string `json:"uuid"`
-	ShortUrl    string `json:"short_url"`
-	OriginalUrl string `json:"original_url"`
+	ShortURL    string `json:"short_url"`
+	OriginalURL string `json:"original_url"`
 }
 
 type FileWriter struct {
@@ -66,10 +66,10 @@ func ReadFromFile(storage *storage.Storage) {
 	}
 
 	reader, err := NewReader()
-	defer reader.Close()
 	if err != nil {
 		log.Fatal("Error opening file:", err)
 	}
+	defer reader.Close()
 
 	for reader.scanner.Scan() {
 		line := reader.scanner.Bytes()
@@ -78,7 +78,7 @@ func ReadFromFile(storage *storage.Storage) {
 		if err := json.Unmarshal(line, &rec); err != nil {
 			log.Fatal("Error decoding data from file:", err)
 		}
-		storage.Add(rec.ShortUrl, rec.OriginalUrl)
+		storage.Add(rec.ShortURL, rec.OriginalURL)
 	}
 
 	if err := reader.scanner.Err(); err != nil {
@@ -99,8 +99,8 @@ func AddRecord(short string, url string, uuid int) error {
 
 	newRecord := record{
 		UUID:        strconv.Itoa(uuid),
-		ShortUrl:    short,
-		OriginalUrl: url,
+		ShortURL:    short,
+		OriginalURL: url,
 	}
 	recordJSON, err := json.Marshal(newRecord)
 	if err != nil {

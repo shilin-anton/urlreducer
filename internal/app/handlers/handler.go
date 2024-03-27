@@ -7,7 +7,7 @@ import (
 	"encoding/json"
 	"github.com/go-chi/chi/v5"
 	"github.com/shilin-anton/urlreducer/internal/app/config"
-	file_manager "github.com/shilin-anton/urlreducer/internal/app/file-manager"
+	filemanager "github.com/shilin-anton/urlreducer/internal/app/file-manager"
 	"github.com/shilin-anton/urlreducer/internal/app/gzip"
 	"github.com/shilin-anton/urlreducer/internal/logger"
 	"io"
@@ -101,7 +101,7 @@ func (s Server) PostHandler(res http.ResponseWriter, req *http.Request) {
 	if existShort, contains := s.data.FindByValue(url); !contains {
 		short = shortenURL(url)
 		uuid := s.data.Size() + 1
-		if err := file_manager.AddRecord(short, url, uuid); err != nil {
+		if err := filemanager.AddRecord(short, url, uuid); err != nil {
 			http.Error(res, "Error store data to file", http.StatusInternalServerError)
 			return
 		}
@@ -150,7 +150,7 @@ func (s Server) PostShortenHandler(res http.ResponseWriter, req *http.Request) {
 	if existShort, contains := s.data.FindByValue(request.URL); !contains {
 		short = shortenURL(request.URL)
 		uuid := s.data.Size() + 1
-		if err := file_manager.AddRecord(short, request.URL, uuid); err != nil {
+		if err := filemanager.AddRecord(short, request.URL, uuid); err != nil {
 			http.Error(res, "Error store data to file", http.StatusInternalServerError)
 			return
 		}
